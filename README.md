@@ -1,0 +1,1 @@
+# qjackctl_macos
