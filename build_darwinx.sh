@@ -36,6 +36,7 @@ mv qjackctl-qjackctl_0_6_0 qjackctl
 cp config.h qjackctl/src/
 
 cd qjackctl
+patch -p1 <../qjackctl.diff
 
 qmake-qt5
 
@@ -66,6 +67,7 @@ cd ..
 rm -fr QJackCtl.app
 cp -a QJackCtl.app_template QJackCtl.app
 mkdir QJackCtl.app/Contents/lib
+mkdir QJackCtl.app/Contents/MacOS
 
 cp -f qjackctl/qjackctl QJackCtl.app/Contents/MacOS/
 

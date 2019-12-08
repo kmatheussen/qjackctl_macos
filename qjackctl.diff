@@ -1,0 +1,34 @@
+Only in qjackctl: Makefile
+Only in qjackctl: qjackctl
+Only in qjackctl/src: config.h
+Only in qjackctl/src: Makefile
+Only in qjackctl/src: .moc
+Only in qjackctl/src: .obj
+diff -ur qjackctl-qjackctl_0_6_0/src/qjackctlMainForm.cpp qjackctl/src/qjackctlMainForm.cpp
+--- qjackctl-qjackctl_0_6_0/src/qjackctlMainForm.cpp	2019-10-17 09:30:10.000000000 +0200
++++ qjackctl/src/qjackctlMainForm.cpp	2019-12-09 00:11:20.058692728 +0100
+@@ -1309,6 +1309,9 @@
+ 	#if defined(__WIN32__) || defined(_WIN32) || defined(WIN32)
+ 		paths = paths << "C:\\Program Files\\Jack" << "C:\\Program Files (x86)\\Jack";
+ 	#endif
++        #if defined(__APPLE__)
++                paths = paths << "/usr/local/bin/";
++        #endif        
+ 		QStringListIterator iter(paths);
+ 		while (iter.hasNext()) {
+ 			const QString& sDirectory = iter.next();
+Only in qjackctl/src: qjackctlMainForm.cpp~
+diff -ur qjackctl-qjackctl_0_6_0/src/qjackctlSetup.cpp qjackctl/src/qjackctlSetup.cpp
+--- qjackctl-qjackctl_0_6_0/src/qjackctlSetup.cpp	2019-10-17 09:30:10.000000000 +0200
++++ qjackctl/src/qjackctlSetup.cpp	2019-12-09 00:04:42.557306331 +0100
+@@ -39,6 +39,8 @@
+ 
+ #if defined(__WIN32__) || defined(_WIN32) || defined(WIN32)
+ #define DEFAULT_DRIVER "portaudio"
++#elif defined(__APPLE__)
++#define DEFAULT_DRIVER "coreaudio"
+ #else
+ #define DEFAULT_DRIVER "alsa"
+ #endif
+Only in qjackctl/src: qrc_qjackctl.cpp
+Only in qjackctl/src: .ui
