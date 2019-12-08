@@ -9,6 +9,8 @@ P=x86_64-apple-darwin17
 CC=$P-clang
 CXX=$P-clang++
 
+MACOSX_DEPLOYMENT_TARGET=10.12
+
 
 
 export JACKOPT="`$P-pkg-config --cflags jack` -DNO_JACK_METADATA"
