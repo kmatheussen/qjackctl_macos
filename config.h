@@ -93,10 +93,10 @@
 #define HAVE_LIBM 1
 
 /* Define to 1 if you have the `X11' library (-lX11). */
-#define HAVE_LIBX11 1
+/* #define HAVE_LIBX11 1 */
 
 /* Define to 1 if you have the `Xext' library (-lXext). */
-#define HAVE_LIBXEXT 1
+/* #define HAVE_LIBXEXT 1 */
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1

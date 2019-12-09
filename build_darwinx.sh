@@ -8,6 +8,7 @@ P=x86_64-apple-darwin17
 
 CC=$P-clang
 CXX=$P-clang++
+LINKER=$P-clang++
 
 MACOSX_DEPLOYMENT_TARGET=10.12
 
@@ -27,8 +28,7 @@ unset QT5DIR
 MYCFLAGS="-mtune=generic -mfpmath=sse -msse2 -O3 -fvisibility=default -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET `$P-pkg-config --cflags Qt5Gui --cflags Qt5Core --cflags Qt5Widgets --cflags Qt5Network` $JACKOPT -DQT_NO_DEBUG -std=gnu++11"
 
 MYCPPFLAGS="$MYCFLAGS"
-MYLDFLAGS="`$P-pkg-config --libs Qt5Gui --libs Qt5Core --libs Qt5Widgets --libs Qt5Network`"
-
+MYLDFLAGS="`$P-pkg-config --libs Qt5Gui --libs Qt5Core --libs Qt5Widgets --libs Qt5Network --libs Qt5Location --libs Qt5Xml` -framework CoreAudio -framework CoreFoundation -L/opt/local/lib -ljack"
 
 rm -fr qjackctl
 
@@ -53,12 +53,12 @@ export OSXCROSS_NO_INCLUDE_PATH_WARNINGS=1
 set +e
 
 #compile (linking fails)
-CFLAGS="$MYCFLAGS" CPPFLAGS="$MYCPPFLAGS" CXXFLAGS="$MYCPPFLAGS" LDFLAGS="$MYLDFLAGS" CC=$CC CXX=$CXX LINK=$CXX AR=$P-ar RANLIB=$P-ranlib make CC=$CC CXX=$CXX CFLAGS="$MYCFLAGS" CPPFLAGS="$MYCPPFLAGS" CXXFLAGS="$MYCPPFLAGS" -j8
+CFLAGS="$MYCFLAGS" CPPFLAGS="$MYCPPFLAGS" CXXFLAGS="$MYCPPFLAGS" LDFLAGS="$MYLDFLAGS" CC=$CC CXX=$CXX LINK=$LINKER AR=$P-ar RANLIB=$P-ranlib make CC=$CC CXX=$CXX LINK=$LINKER CFLAGS="$MYCFLAGS" CPPFLAGS="$MYCPPFLAGS" CXXFLAGS="$MYCPPFLAGS" -j8
 
 set -e
 
 #link manually
-$CXX src/.obj/*.o `$P-pkg-config --libs Qt5Gui --libs Qt5Core --libs Qt5Widgets --libs Qt5Network --libs Qt5Location --libs Qt5Xml` -framework CoreAudio -framework CoreFoundation -L/opt/local/lib -ljack -o qjackctl
+$LINKER src/.obj/*.o $MYLDFLAGS -o qjackctl
 
 $P-otool -L qjackctl
 
