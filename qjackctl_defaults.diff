@@ -1,0 +1,171 @@
+diff --git a/Makefile.in b/Makefile.in
+index b86c009..da00c99 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -15,6 +15,7 @@ headers = \
+ 	src/qjackctlGraph.h \
+ 	src/qjackctlGraphCommand.h \
+ 	src/qjackctlInterfaceComboBox.h \
++	src/qjackctlPeriodsSpinBox.h \
+ 	src/qjackctlJackConnect.h \
+ 	src/qjackctlJackGraph.h \
+ 	src/qjackctlPatchbay.h \
+@@ -44,6 +45,7 @@ sources = \
+ 	src/qjackctlGraph.cpp \
+ 	src/qjackctlGraphCommand.cpp \
+ 	src/qjackctlInterfaceComboBox.cpp \
++	src/qjackctlPeriodsSpinBox.cpp \
+ 	src/qjackctlJackConnect.cpp \
+ 	src/qjackctlJackGraph.cpp \
+ 	src/qjackctlPatchbay.cpp \
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 006ba15..4418f5a 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -17,6 +17,7 @@ set (HEADERS
+   qjackctlGraph.h
+   qjackctlGraphCommand.h
+   qjackctlInterfaceComboBox.h
++  qjackctlPeriodsSpinBox.h
+   qjackctlJackConnect.h
+   qjackctlJackGraph.h
+   qjackctlPatchbay.h
+@@ -47,6 +48,7 @@ set (SOURCES
+   qjackctlGraph.cpp
+   qjackctlGraphCommand.cpp
+   qjackctlInterfaceComboBox.cpp
++  qjackctlPeriodsSpinBox.cpp
+   qjackctlJackConnect.cpp
+   qjackctlJackGraph.cpp
+   qjackctlPatchbay.cpp
+diff --git a/src/qjackctlMainForm.cpp b/src/qjackctlMainForm.cpp
+index ee9afa4..fd2435f 100644
+--- a/src/qjackctlMainForm.cpp
++++ b/src/qjackctlMainForm.cpp
+@@ -1514,7 +1514,7 @@ void qjackctlMainForm::startJack (void)
+ 	if (m_preset.iFrames > 0 && !bNet)
+ 		args.append("-p" + QString::number(m_preset.iFrames));
+ 	if (bAlsa || bSun || bOss || bFirewire) {
+-		if (m_preset.iPeriods > 0)
++		if (m_preset.iPeriods > 1)
+ 			args.append("-n" + QString::number(m_preset.iPeriods));
+ 	}
+ 	if (bAlsa) {
+diff --git a/src/qjackctlSetup.cpp b/src/qjackctlSetup.cpp
+index 8294606..29b965c 100644
+--- a/src/qjackctlSetup.cpp
++++ b/src/qjackctlSetup.cpp
+@@ -399,9 +399,9 @@ bool qjackctlSetup::loadPreset ( qjackctlPreset& preset, const QString& sPreset
+ 	preset.bHWMeter     = m_settings.value("/HWMeter", false).toBool();
+ 	preset.bIgnoreHW    = m_settings.value("/IgnoreHW", false).toBool();
+ 	preset.iPriority    = m_settings.value("/Priority", 0).toInt();
+-	preset.iFrames      = m_settings.value("/Frames", 1024).toInt();
+-	preset.iSampleRate  = m_settings.value("/SampleRate", 48000).toInt();
+-	preset.iPeriods     = m_settings.value("/Periods", 2).toInt();
++	preset.iFrames      = m_settings.value("/Frames", 0).toInt();
++	preset.iSampleRate  = m_settings.value("/SampleRate", 0).toInt();
++	preset.iPeriods     = m_settings.value("/Periods", 0).toInt();
+ 	preset.iWordLength  = m_settings.value("/WordLength", 16).toInt();
+ 	preset.iWait        = m_settings.value("/Wait", 21333).toInt();
+ 	preset.iChan        = m_settings.value("/Chan", 0).toInt();
+diff --git a/src/qjackctlSetupForm.cpp b/src/qjackctlSetupForm.cpp
+index ee64fa3..7107d3d 100644
+--- a/src/qjackctlSetupForm.cpp
++++ b/src/qjackctlSetupForm.cpp
+@@ -767,9 +767,9 @@ void qjackctlSetupForm::setCurrentPreset ( const qjackctlPreset& preset )
+ 	m_ui.IgnoreHWCheckBox->setChecked(preset.bIgnoreHW);
+ 	m_ui.PrioritySpinBox->setValue(preset.iPriority);
+ 	setComboBoxCurrentText(m_ui.FramesComboBox,
+-		QString::number(preset.iFrames));
++		preset.iFrames > 0 ? QString::number(preset.iFrames) : "(default)");
+ 	setComboBoxCurrentText(m_ui.SampleRateComboBox,
+-		QString::number(preset.iSampleRate));
++		preset.iSampleRate > 0 ? QString::number(preset.iSampleRate) : "(default)");
+ 	m_ui.PeriodsSpinBox->setValue(preset.iPeriods);
+ 	setComboBoxCurrentText(m_ui.WordLengthComboBox,
+ 		QString::number(preset.iWordLength));
+diff --git a/src/qjackctlSetupForm.ui b/src/qjackctlSetupForm.ui
+index e78624b..92a8b0f 100644
+--- a/src/qjackctlSetupForm.ui
++++ b/src/qjackctlSetupForm.ui
+@@ -432,6 +444,11 @@
+                </property>
+                <item>
+                 <property name="text">
++                 <string>(default)</string>
++                </property>
++               </item>
++               <item>
++                <property name="text">
+                  <string>22050</string>
+                 </property>
+                </item>
+@@ -518,6 +535,11 @@
+                </property>
+                <item>
+                 <property name="text">
++                 <string>(default)</string>
++                </property>
++               </item>
++               <item>
++                <property name="text">
+                  <string>16</string>
+                 </property>
+                </item>
+@@ -586,7 +608,7 @@
+               </widget>
+              </item>
+              <item row="3" column="4">
+-              <widget class="QSpinBox" name="PeriodsSpinBox">
++              <widget class="qjackctlPeriodsSpinBox" name="PeriodsSpinBox">
+                <property name="font">
+                 <font>
+                  <weight>50</weight>
+@@ -597,11 +619,14 @@
+                 <string>Number of periods in the hardware buffer</string>
+                </property>
+                <property name="minimum">
+-                <number>2</number>
++                <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>999</number>
+                </property>
++               <property name="value">
++                <number>1</number>
++               </property>
+               </widget>
+              </item>
+             </layout>
+@@ -4205,6 +4347,11 @@
+    <extends>QComboBox</extends>
+    <header>qjackctlInterfaceComboBox.h</header>
+   </customwidget>
++  <customwidget>
++   <class>qjackctlPeriodsSpinBox</class>
++   <extends>QSpinBox</extends>
++   <header>qjackctlPeriodsSpinBox.h</header>
++  </customwidget>
+  </customwidgets>
+  <tabstops>
+   <tabstop>SetupTabWidget</tabstop>
+diff --git a/src/src.pro b/src/src.pro
+index 564f54f..3d03de5 100644
+--- a/src/src.pro
++++ b/src/src.pro
+@@ -19,6 +19,7 @@ HEADERS += config.h \
+ 	qjackctlGraph.h \
+ 	qjackctlGraphCommand.h \
+ 	qjackctlInterfaceComboBox.h \
++	qjackctlPeriodsSpinBox.h \
+ 	qjackctlJackConnect.h \
+ 	qjackctlJackGraph.h \
+ 	qjackctlPatchbay.h \
+@@ -48,6 +49,7 @@ SOURCES += \
+ 	qjackctlGraph.cpp \
+ 	qjackctlGraphCommand.cpp \
+ 	qjackctlInterfaceComboBox.cpp \
++	qjackctlPeriodsSpinBox.cpp \
+ 	qjackctlJackConnect.cpp \
+ 	qjackctlJackGraph.cpp \
+ 	qjackctlPatchbay.cpp \

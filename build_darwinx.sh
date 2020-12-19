@@ -39,6 +39,9 @@ cp config.h qjackctl/src/
 
 cd qjackctl
 patch -p1 <../qjackctl.diff
+patch -p1 <../qjackctl_defaults.diff
+cp ../qjackctlPeriodsSpinBox.h src/
+cp ../qjackctlPeriodsSpinBox.cpp src/
 
 qmake-qt5
 
